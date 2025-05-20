@@ -5,4 +5,4 @@ Maybe there is a solution that someone finds useful or has suggestions for impro
 ## Class / Type Overview
 
 20.05.2025 - added VHHListView2
-- This Windows Forms ListView is a modified version of the "VHH ListView" by Dave Chambers with the ability to adjust the height of the ColumnHeader.
+- This Windows Forms ListView is a modified version of the "VHHListView" by Dave Chambers with the ability to adjust the height of the ColumnHeader.
