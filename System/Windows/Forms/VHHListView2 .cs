@@ -147,24 +147,6 @@ namespace System.Windows.Forms
 
             //----------------------------------------------------------------------------------
 
-            unsafe void HdmLayout(ref Message m)
-            {
-                HDLAYOUT* hd = (HDLAYOUT*)m.LParam;         // contains information used to set the size and position of a header control
-                RECT* prc = (RECT*)hd->prc;                 // contains the coordinates of a rectangle that the header control will occupy
-                WINDOWPOS* pwpos = (WINDOWPOS*)hd->pwpos;   // receives information about the appropriate size and position of the header control
-
-                pwpos->hwnd = Handle;                   // we're operating on the header control
-                pwpos->hwndInsertAfter = (IntPtr)0;     // don't alter the z-order
-                pwpos->x = prc->left;                   // align to left side of the ListView's client area, this includes scrollbar nPos
-                pwpos->y = prc->top;                    // align to top side of ListView's client area
-                pwpos->cx = prc->right - prc->left;     // full width of the ListView's client area
-                pwpos->cy = parent.HeaderHeight;        // *** SET CUSTOM HEADER HEIGHT ***
-                pwpos->flags |= SWP_FRAMECHANGED;       // Send a WM_NCCALCSIZE message to the window
-                prc->top = parent.HeaderHeight;         // *** TOP COORDINATE FOR THE FIRST LISTVIEW ITEM ***
-            }
-
-            //----------------------------------------------------------------------------------
-
             public void UpdateHeight(bool invalidate)
             {
                 // the ListView is already set to fullrowselect but sending this 
@@ -185,24 +167,20 @@ namespace System.Windows.Forms
 
             protected override void WndProc(ref Message m)
             {
-                switch (m.Msg)
+                base.WndProc(ref m); // retrieve required HDLAYOUT information first
+
+                if (m.Msg == Win32.HDM_LAYOUT && parent.HeaderStyle > 0)
                 {
-                    case HDM_LAYOUT: // process before base.WndProc
+                    unsafe
                     {
-                        // alternate approach:
-                        //
-                        // call base.WndProc first then process the HDM_LAYOUT message
-                        // mutate the value's of WINDOWPOS.cy (header height) and
-                        // RECT.top (top of the first listview item) to the desired height
-                        if (parent.HeaderStyle != ColumnHeaderStyle.None)
-                        {
-                            HdmLayout(ref m);
-                            return; // discard base.WndProc, reduce method overhead
-                        }
-                        break;
+                        HDLAYOUT* hd = (Win32.HDLAYOUT*)m.LParam;
+                        RECT* prc = (Win32.RECT*)hd->prc;
+                        WINDOWPOS* pwpos = (Win32.WINDOWPOS*)hd->pwpos;
+
+                        pwpos->cy = parent.ColumnHeight;    // *** APPLY NEW HEADER HEIGHT ***
+                        prc->top = parent.ColumnHeight;     // *** TOP COORDINATE FOR THE FIRST LISTVIEW ITEM ***
                     }
                 }
-                base.WndProc(ref m);
             }
         }
 
